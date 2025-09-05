@@ -1,23 +1,21 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Taller de Post-it</title>
-    <link rel="stylesheet" href="">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Taller de Post-it</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-
-    <div id="app-container">
-        <button id="toggle-theme-button">Modo Oscuro</button>
-        <h1>Mis Post-it</h1>
-        <div>
-            <input type="text" id="new-note-input" placeholder="Escribe una nueva nota...">
-            <button id="add-note-button" disabled>Agregar</button>
-        </div>
-
-        <div id="notes-container"></div>
+  <div id="app-container">
+    <button id="toggle-theme-button" aria-pressed="false" title="Cambiar tema">Modo Oscuro</button>
+    <h1>Mis Post-it</h1>
+    <div class="toolbar">
+      <input type="text" id="new-note-input" placeholder="Escribe una nueva nota..." aria-label="Nueva nota" />
+      <button id="add-note-button" disabled>Agregar</button>
     </div>
-
-    <script src=""></script>
+    <div id="notes-container" aria-live="polite"></div>
+  </div>
+  <script src="script.js"></script>
 </body>
 </html>

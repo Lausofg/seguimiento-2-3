@@ -3,118 +3,141 @@ const addButton = document.getElementById('add-note-button');
 const notesContainer = document.getElementById('notes-container');
 const toggleThemeButton = document.getElementById('toggle-theme-button');
 const body = document.body;
-const colors = ['note-yellow'];
+
+const colors = ['note-yellow', 'note-blue', 'note-pink', 'note-green', 'note-lilac'];
+
+function randomColorClass() {
+  return colors[Math.floor(Math.random() * colors.length)];
+}
 
 function createNoteElement(text, colorClass) {
-    const noteDiv = document.createElement('div');
-    noteDiv.classList.add('note', colorClass); 
-    noteDiv.textContent = text;
+  const noteDiv = document.createElement('div');
+  noteDiv.classList.add('note', colorClass);
+  const deleteButton = document.createElement('span');
+  deleteButton.classList.add('delete-btn');
+  deleteButton.setAttribute('role', 'button');
+  deleteButton.setAttribute('aria-label', 'Eliminar nota');
+  deleteButton.textContent = '×';
+  const content = document.createElement('div');
+  content.classList.add('note-content');
+  content.textContent = text;
+  noteDiv.appendChild(deleteButton);
+  noteDiv.appendChild(content);
+  return noteDiv;
+}
 
-    const deleteButton = document.createElement('span');
-    deleteButton.classList.add('delete-btn');
-    deleteButton.textContent = 'x';
+function serializeNotes() {
+  const items = [];
+  document.querySelectorAll('#notes-container .note').forEach(note => {
+    const textEl = note.querySelector('.note-content');
+    const color = colors.find(c => note.classList.contains(c)) || colors[0];
+    items.push({ text: textEl?.textContent ?? '', color });
+  });
+  return items;
+}
 
-    noteDiv.appendChild(deleteButton);
-    return noteDiv;
+function saveNotes() {
+  const data = serializeNotes();
+  localStorage.setItem('notes', JSON.stringify(data));
 }
 
 function loadNotes() {
-    const storedNotes = [];
-    console.log(storedNotes);
-    if (storedNotes) {
-        const notes = JSON.parse(storedNotes);
-        notes.forEach(noteData => {
-            const newNote = createNoteElement(noteData.text, noteData.color);
-            notesContainer.appendChild(newNote);
-        });
-    }
+  const raw = localStorage.getItem('notes');
+  if (!raw) return;
+  try {
+    const notes = JSON.parse(raw);
+    notes.forEach(n => {
+      const el = createNoteElement(n.text || '', n.color || randomColorClass());
+      notesContainer.appendChild(el);
+    });
+  } catch (e) {
+    localStorage.removeItem('notes');
+  }
 }
 
 function setInitialTheme() {
-    const isDarkMode = localStorage.getItem('isDarkMode') === 'true';
-    if (isDarkMode) {
-        body.classList.add('dark-mode');
-        toggleThemeButton.textContent = 'Modo Claro';
-    }
+  const isDarkMode = localStorage.getItem('isDarkMode') === 'true';
+  body.classList.toggle('dark-mode', isDarkMode);
+  toggleThemeButton.textContent = isDarkMode ? 'Modo Claro' : 'Modo Oscuro';
+  toggleThemeButton.setAttribute('aria-pressed', String(isDarkMode));
 }
 
 noteInput.addEventListener('input', () => {
-    addButton.disabled = noteInput.value.trim() === '';
+  addButton.disabled = noteInput.value.trim() === '';
 });
 
-toggleThemeButton.addEventListener('click', () => {
-    body.classList.toggle('dark-mode');
-    const isDarkMode = body.classList.contains('dark-mode');
-    localStorage.setItem('isDarkMode', isDarkMode);
-    toggleThemeButton.textContent = isDarkMode ? 'Modo Claro' : 'Modo Oscuro';
-});
-
-notesContainer.addEventListener('dblclick', (event) => {
-    const target = event.target;
-    if (target.classList.contains('note')) {
-        const currentText = target.textContent.slice(0, -1);
-        target.textContent = '';
-        target.classList.add('editing');
-
-        const textarea = document.createElement('textarea');
-        textarea.value = currentText;
-        target.appendChild(textarea);
-        textarea.focus();
-
-        function saveEdit() {
-            const newText = textarea.value.trim();
-            target.textContent = newText;
-            target.classList.remove('editing');
-            
-            const deleteButton = document.createElement('span');
-            deleteButton.classList.add('delete-btn');
-            deleteButton.textContent = 'x';
-            target.appendChild(deleteButton);
-
-            saveNotes();
-        }
-        textarea.addEventListener('blur', saveEdit);
-        textarea.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                saveEdit();
-            }
-        });
-    }
+noteInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !addButton.disabled) {
+    addButton.click();
+  }
 });
 
 addButton.addEventListener('click', () => {
-    const noteText = noteInput.value.trim();
-    if (noteText !== '') {
-        const randomColor = colors[Math.floor(Math.random() * colors.length)];
-        const newNote = createNoteElement(noteText, randomColor);
-        notesContainer.appendChild(newNote);
-        const newNoteErr = createNoteElement(noteText, randomColor);
-        notesContainer.appendChild(newNoteErr);
-        noteInput.value = '';
-        addButton.disabled = true;
-        saveNotes();
-    }
+  const noteText = noteInput.value.trim();
+  if (!noteText) return;
+  const el = createNoteElement(noteText, randomColorClass());
+  notesContainer.appendChild(el);
+  noteInput.value = '';
+  addButton.disabled = true;
+  saveNotes();
 });
 
 notesContainer.addEventListener('click', (event) => {
-    if (event.target.classList.contains('delete-btn')) {
-        event.target.parentElement.remove();
-        saveNotes();
-    }
+  const target = event.target;
+  if (target.classList.contains('delete-btn')) {
+    target.parentElement.remove();
+    saveNotes();
+  }
 });
 
-notesContainer.addEventListener('mouseover', (event) => {
-    if (event.target.classList.contains('note')) {
-        event.target.style.boxShadow = '0 0 15px rgba(0,0,0,0.3)';
+notesContainer.addEventListener('dblclick', (event) => {
+  const note = event.target.closest('.note');
+  if (!note) return;
+  const content = note.querySelector('.note-content');
+  if (!content) return;
+  const currentText = content.textContent;
+  note.classList.add('editing');
+  note.innerHTML = '';
+  const textarea = document.createElement('textarea');
+  textarea.value = currentText ?? '';
+  note.appendChild(textarea);
+  textarea.focus();
+  function finishEdit(save = true) {
+    const newText = save ? textarea.value.trim() : currentText;
+    note.classList.remove('editing');
+    note.innerHTML = '';
+    const deleteButton = document.createElement('span');
+    deleteButton.classList.add('delete-btn');
+    deleteButton.setAttribute('role', 'button');
+    deleteButton.setAttribute('aria-label', 'Eliminar nota');
+    deleteButton.textContent = '×';
+    const contentDiv = document.createElement('div');
+    contentDiv.classList.add('note-content');
+    contentDiv.textContent = newText;
+    note.appendChild(deleteButton);
+    note.appendChild(contentDiv);
+    saveNotes();
+  }
+  textarea.addEventListener('blur', () => finishEdit(true));
+  textarea.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      finishEdit(true);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      finishEdit(false);
     }
+  });
 });
 
-notesContainer.addEventListener('mouseout', (event) => {
-    if (event.target.classList.contains('note')) {
-        event.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-    }
+toggleThemeButton.addEventListener('click', () => {
+  body.classList.toggle('dark-mode');
+  const isDarkMode = body.classList.contains('dark-mode');
+  localStorage.setItem('isDarkMode', String(isDarkMode));
+  toggleThemeButton.textContent = isDarkMode ? 'Modo Claro' : 'Modo Oscuro';
+  toggleThemeButton.setAttribute('aria-pressed', String(isDarkMode));
 });
 
 setInitialTheme();
 loadNotes();
+addButton.disabled = noteInput.value.trim() === '';
