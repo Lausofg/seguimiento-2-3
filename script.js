@@ -4,6 +4,7 @@ const notesContainer = document.getElementById('notes-container');
 const toggleThemeButton = document.getElementById('toggle-theme-button');
 const body = document.body;
 
+// antes solo había un color, ahora con esta const agregamos mucho más :D
 const colors = ['note-yellow', 'note-blue', 'note-pink', 'note-green', 'note-lilac'];
 
 function randomColorClass() {
@@ -13,19 +14,23 @@ function randomColorClass() {
 function createNoteElement(text, colorClass) {
   const noteDiv = document.createElement('div');
   noteDiv.classList.add('note', colorClass);
+
   const deleteButton = document.createElement('span');
   deleteButton.classList.add('delete-btn');
   deleteButton.setAttribute('role', 'button');
   deleteButton.setAttribute('aria-label', 'Eliminar nota');
   deleteButton.textContent = '×';
+
   const content = document.createElement('div');
   content.classList.add('note-content');
   content.textContent = text;
+
   noteDiv.appendChild(deleteButton);
   noteDiv.appendChild(content);
   return noteDiv;
 }
 
+// corrección: ahora sí guarda las notas en el localStorage
 function serializeNotes() {
   const items = [];
   document.querySelectorAll('#notes-container .note').forEach(note => {
@@ -41,6 +46,7 @@ function saveNotes() {
   localStorage.setItem('notes', JSON.stringify(data));
 }
 
+// corrección: ahora lee de localStorage (antes usaba un array vacío)
 function loadNotes() {
   const raw = localStorage.getItem('notes');
   if (!raw) return;
@@ -55,9 +61,10 @@ function loadNotes() {
   }
 }
 
+// corrección: modo oscuro inicial configurado correctamente
 function setInitialTheme() {
   const isDarkMode = localStorage.getItem('isDarkMode') === 'true';
-  body.classList.toggle('dark-mode', isDarkMode);
+  document.body.classList.toggle('dark-mode', isDarkMode);
   toggleThemeButton.textContent = isDarkMode ? 'Modo Claro' : 'Modo Oscuro';
   toggleThemeButton.setAttribute('aria-pressed', String(isDarkMode));
 }
@@ -72,6 +79,7 @@ noteInput.addEventListener('keydown', (e) => {
   }
 });
 
+// corrección: eliminado el bug que creaba notas duplicadas
 addButton.addEventListener('click', () => {
   const noteText = noteInput.value.trim();
   if (!noteText) return;
@@ -90,34 +98,42 @@ notesContainer.addEventListener('click', (event) => {
   }
 });
 
+// edición de notas (esto se mantuvo, solo se ajustó para guardar al final)
 notesContainer.addEventListener('dblclick', (event) => {
   const note = event.target.closest('.note');
   if (!note) return;
   const content = note.querySelector('.note-content');
   if (!content) return;
+
   const currentText = content.textContent;
   note.classList.add('editing');
   note.innerHTML = '';
+
   const textarea = document.createElement('textarea');
   textarea.value = currentText ?? '';
   note.appendChild(textarea);
   textarea.focus();
+
   function finishEdit(save = true) {
     const newText = save ? textarea.value.trim() : currentText;
     note.classList.remove('editing');
     note.innerHTML = '';
+
     const deleteButton = document.createElement('span');
     deleteButton.classList.add('delete-btn');
     deleteButton.setAttribute('role', 'button');
     deleteButton.setAttribute('aria-label', 'Eliminar nota');
     deleteButton.textContent = '×';
+
     const contentDiv = document.createElement('div');
     contentDiv.classList.add('note-content');
     contentDiv.textContent = newText;
+
     note.appendChild(deleteButton);
     note.appendChild(contentDiv);
     saveNotes();
   }
+
   textarea.addEventListener('blur', () => finishEdit(true));
   textarea.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -130,14 +146,16 @@ notesContainer.addEventListener('dblclick', (event) => {
   });
 });
 
+// corrección: toggle de modo oscuro funciona y guarda en localStorage
 toggleThemeButton.addEventListener('click', () => {
-  body.classList.toggle('dark-mode');
-  const isDarkMode = body.classList.contains('dark-mode');
+  document.body.classList.toggle('dark-mode');
+  const isDarkMode = document.body.classList.contains('dark-mode');
   localStorage.setItem('isDarkMode', String(isDarkMode));
   toggleThemeButton.textContent = isDarkMode ? 'Modo Claro' : 'Modo Oscuro';
   toggleThemeButton.setAttribute('aria-pressed', String(isDarkMode));
 });
 
+// inicialización
 setInitialTheme();
 loadNotes();
 addButton.disabled = noteInput.value.trim() === '';

@@ -1,14 +1,13 @@
 :root{
   --bg: #f5f5f7;
   --fg: #111;
-  --card: #fff;
-  --muted: #777;
+  --card: #ffffff;
   --shadow: 0 6px 24px rgba(0,0,0,.08);
   --shadow-hover: 0 10px 30px rgba(0,0,0,.12);
 }
 
 body{
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans";
   margin: 0;
   padding: 24px;
   background: var(--bg);
@@ -23,7 +22,6 @@ body{
   padding: 24px;
   border-radius: 16px;
   box-shadow: var(--shadow);
-  transition: background .25s ease, box-shadow .25s ease;
 }
 
 h1{
@@ -35,20 +33,13 @@ h1{
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 10px;
-  align-items: center;
 }
 
 #new-note-input{
   padding: 10px 12px;
-  border: 1px solid #d7d7db;
+  border: 1px solid #ffffff;
   border-radius: 10px;
-  outline: none;
   font-size: 0.95rem;
-}
-
-#new-note-input:focus{
-  border-color: #7aa7ff;
-  box-shadow: 0 0 0 3px rgba(122,167,255,.25);
 }
 
 #add-note-button{
@@ -79,14 +70,11 @@ h1{
   padding: 14px 14px 28px;
   border-radius: 10px;
   box-shadow: var(--shadow);
-  transition: box-shadow .2s ease, transform .1s ease;
   word-wrap: break-word;
-  overflow-wrap: anywhere;
 }
 
 .note:hover{
   box-shadow: var(--shadow-hover);
-  transform: translateY(-1px);
 }
 
 .note .delete-btn{
@@ -102,7 +90,6 @@ h1{
   background: rgba(0,0,0,.07);
   color: #333;
   cursor: pointer;
-  user-select: none;
 }
 
 .note .note-content{
@@ -127,4 +114,32 @@ h1{
 }
 
 .note-yellow{ background: #fff7b3; }
-.note-blue{   background: #ffb3b9; }
+.note-blue{   background: #cfe3ff; }
+.note-pink{   background: #ffd0d8; }
+.note-green{  background: #d9f7c7; }
+.note-lilac{  background: #e8d9ff; }
+
+#toggle-theme-button{
+  float: right;
+  padding: 8px 12px;
+  border: none;
+  background: #333;
+  color: #fff;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+body.dark-mode{
+  --bg: #0e0f12;
+  --fg: #e8e8ea;
+  --card: #17181c;
+}
+
+body.dark-mode #toggle-theme-button{ background: #1f2025; }
+body.dark-mode #new-note-input{ background:#0e0f12; color: var(--fg); border-color:#2a2b31; }
+body.dark-mode #add-note-button{ background:#4c82ff; }
+body.dark-mode .note .delete-btn{ background: rgba(255,255,255,.08); color: #e8e8ea; }
+
+@media (max-width: 420px){
+  #app-container{ padding: 16px; }
+}
